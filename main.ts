@@ -10,39 +10,17 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 	mySetting: 'default'
 }
 
-function randomElement(array) {
-    return array[(array.length * Math.random()) << 0];
-}
-
-export default class MyPlugin extends obsidian.Plugin {
+export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
-
-	constructor() {
-
-		this.handleOpenRandomNote = () => __awaiter(this, void 0, void 0, function* () {
-            const markdownFiles = this.app.vault.getMarkdownFiles();
-            this.openRandomNote(markdownFiles);
-        });
-
-		this.openRandomNote = (files) => __awaiter(this, void 0, void 0, function* () {
-            const markdownFiles = files.filter((file) => file.extension === 'md');
-            // if (!markdownFiles.length) {
-            //     new SmartRandomNoteNotice("Can't open note. No markdown files available to open.", 5000);
-            //     return;
-            // }
-            const fileToOpen = randomElement(markdownFiles);
-            yield this.app.workspace.openLinkText(fileToOpen.basename, '', this.settings.openInNewLeaf, {
-                active: true,
-            });
-        });
-	}
 
 	async onload() {
 		await this.loadSettings();
 
 		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', this.handleOpenRandomNote);
-
+		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
+			// Called when the user clicks the icon.
+			new Notice('This is a notice!');
+		});
 		// Perform additional things with the ribbon
 		ribbonIconEl.addClass('my-plugin-ribbon-class');
 
