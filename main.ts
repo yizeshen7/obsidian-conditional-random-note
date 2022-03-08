@@ -23,7 +23,7 @@ export default class MyPlugin extends Plugin {
 		// This creates an icon in the left ribbon.
 		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
 			// Called when the user clicks the icon.
-			new Notice('This is a notice!');
+			new Notice('This is another notice!');
 
 			// code from smart random note that opens a random note
 			const markdownFiles = files.filter((file) => file.extension === 'md');
@@ -36,6 +36,7 @@ export default class MyPlugin extends Plugin {
                 active: true,
             });
 		});
+
 		// Perform additional things with the ribbon
 		ribbonIconEl.addClass('my-plugin-ribbon-class');
 
