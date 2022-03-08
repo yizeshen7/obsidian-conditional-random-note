@@ -10,6 +10,10 @@ const DEFAULT_SETTINGS: MyPluginSettings = {
 	mySetting: 'default'
 }
 
+function randomElement(array) {
+    return array[(array.length * Math.random()) << 0];
+}
+
 export default class MyPlugin extends Plugin {
 	settings: MyPluginSettings;
 
@@ -20,6 +24,17 @@ export default class MyPlugin extends Plugin {
 		const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
 			// Called when the user clicks the icon.
 			new Notice('This is a notice!');
+
+			// code from smart random note that opens a random note
+			const markdownFiles = files.filter((file) => file.extension === 'md');
+            if (!markdownFiles.length) {
+                new SmartRandomNoteNotice("Can't open note. No markdown files available to open.", 5000);
+                return;
+            }
+            const fileToOpen = randomElement(markdownFiles);
+            yield this.app.workspace.openLinkText(fileToOpen.basename, '', this.settings.openInNewLeaf, {
+                active: true,
+            });
 		});
 		// Perform additional things with the ribbon
 		ribbonIconEl.addClass('my-plugin-ribbon-class');
