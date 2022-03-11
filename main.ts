@@ -14,11 +14,13 @@ import {
 interface MyPluginSettings {
 	mySetting: string;
 	destinationFolder: string;
+	cutOffTime: string;
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
 	mySetting: "default",
 	destinationFolder: "",
+	cutOffTime: "",
 };
 
 export default class MyPlugin extends Plugin {
@@ -45,9 +47,28 @@ export default class MyPlugin extends Plugin {
 					FolderFiles
 				);
 
+				// this gets all the files that have time stamp later than this date
+				const unixTime =
+					Number(this.settings.cutOffTime) * 24 * 60 * 60;
+				const ts = Math.floor(Date.now() / 1000);
+				console.log("thisis todaym", ts);
+				console.log("this is unixtimefor date back", unixTime);
+				console.log(
+					"this is one of file's time",
+					FolderFiles[0].stat.ctime / 1000
+				);
+				const timeFiles = FolderFiles.filter(
+					(file) => ts - unixTime > file.stat.ctime / 1000
+				);
+
+				console.log(
+					"this is the resulting files after time",
+					timeFiles
+				);
+
 				// this picks a random note
 				const fileOpen =
-					FolderFiles[Math.floor(Math.random() * FolderFiles.length)];
+					timeFiles[Math.floor(Math.random() * FolderFiles.length)];
 
 				// and this opens the file
 				this.app.workspace.openLinkText(fileOpen.basename, "");
@@ -172,6 +193,23 @@ class SampleSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						console.log("Secret: " + value);
 						this.plugin.settings.destinationFolder = value;
+						await this.plugin.saveSettings();
+					})
+			);
+
+		new Setting(containerEl)
+			.setName("Cutoff time")
+			.setDesc("It's a secret")
+			.addText((text) =>
+				text
+					.setPlaceholder("Enter your secret")
+					.setValue(this.plugin.settings.cutOffTime)
+					.onChange(async (value) => {
+						console.log("Secret: " + value);
+						if (typeof Number(value) == "number") {
+							this.plugin.settings.cutOffTime = value;
+							console.log("itworked");
+						}
 						await this.plugin.saveSettings();
 					})
 			);
