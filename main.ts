@@ -13,10 +13,12 @@ import {
 
 interface MyPluginSettings {
 	mySetting: string;
+	destinationFolder: string;
 }
 
 const DEFAULT_SETTINGS: MyPluginSettings = {
 	mySetting: "default",
+	destinationFolder: "",
 };
 
 export default class MyPlugin extends Plugin {
@@ -36,7 +38,7 @@ export default class MyPlugin extends Plugin {
 
 				// this gets all the files that contains the path we want
 				const FolderFiles = files.filter((word) =>
-					word.path.includes("2 Area/Idea/")
+					word.path.includes(this.settings.destinationFolder)
 				);
 				console.log(
 					"this is the resulting files after filter",
@@ -166,10 +168,10 @@ class SampleSettingTab extends PluginSettingTab {
 			.addText((text) =>
 				text
 					.setPlaceholder("Enter your secret")
-					.setValue(this.plugin.settings.mySetting)
+					.setValue(this.plugin.settings.destinationFolder)
 					.onChange(async (value) => {
 						console.log("Secret: " + value);
-						this.plugin.settings.mySetting = value;
+						this.plugin.settings.destinationFolder = value;
 						await this.plugin.saveSettings();
 					})
 			);
