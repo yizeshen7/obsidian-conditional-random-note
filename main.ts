@@ -30,20 +30,28 @@ export default class MyPlugin extends Plugin {
 			"dice",
 			"Sample Plugin",
 			(event) => {
+				// this gets all the files from the obsidian vault
 				const files = this.app.vault.getMarkdownFiles();
 				console.log("this is orignal files", files);
+
+				// this gets all the files that contains the path we want
 				const FolderFiles = files.filter((word) =>
-					word.path.includes("Folder/SubFolder/")
+					word.path.includes("2 Area/Idea/")
 				);
 				console.log(
 					"this is the resulting files after filter",
 					FolderFiles
 				);
 
+				// this picks a random note
 				const fileOpen =
 					FolderFiles[Math.floor(Math.random() * FolderFiles.length)];
 
+				// and this opens the file
 				this.app.workspace.openLinkText(fileOpen.basename, "");
+
+				// adding a banner, following gold of excutation.
+				new Notice("enjoy :D");
 			}
 		);
 		// Perform additional things with the ribbon
