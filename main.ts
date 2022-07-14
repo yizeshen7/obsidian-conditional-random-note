@@ -1,135 +1,53 @@
-import {
-	App,
-	Editor,
-	MarkdownView,
-	Modal,
-	Notice,
-	Plugin,
-	PluginSettingTab,
-	Setting,
-} from "obsidian";
+import { App, Notice, Plugin, PluginSettingTab, Setting } from "obsidian";
 
-// Remember to rename these classes and interfaces!
-
-interface MyPluginSettings {
-	mySetting: string;
+interface RandomNoteSettings {
 	destinationFolder: string;
 	cutOffTime: string;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-	mySetting: "default",
+const DEFAULT_SETTINGS: RandomNoteSettings = {
 	destinationFolder: "",
 	cutOffTime: "",
 };
 
-export default class MyPlugin extends Plugin {
-	settings: MyPluginSettings;
+export default class RandomNotePlugin extends Plugin {
+	settings: RandomNoteSettings;
 
 	async onload() {
 		await this.loadSettings();
 
-		// This creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon(
-			"dice",
-			"Sample Plugin",
-			(event) => {
-				// this gets all the files from the obsidian vault
-				const files = this.app.vault.getMarkdownFiles();
-				console.log("this is orignal files", files);
+		// creates an icon in the left ribbon.
+		const ribbonIconEl = this.addRibbonIcon("dice", "Sample Plugin", () => {
+			// gets all files from the obsidian vault
+			const files = this.app.vault.getMarkdownFiles();
 
-				// this gets all the files that contains the path we want
-				const FolderFiles = files.filter((word) =>
-					word.path.includes(this.settings.destinationFolder)
-				);
-				console.log(
-					"this is the resulting files after filter",
-					FolderFiles
-				);
+			// gets all files containing path set
+			const FolderFiles = files.filter((word) =>
+				word.path.includes(this.settings.destinationFolder)
+			);
 
-				// this gets all the files that have time stamp later than this date
-				const unixTime =
-					Number(this.settings.cutOffTime) * 24 * 60 * 60;
-				const ts = Math.floor(Date.now() / 1000);
-				console.log("thisis todaym", ts);
-				console.log("this is unixtimefor date back", unixTime);
-				console.log(
-					"this is one of file's time",
-					FolderFiles[0].stat.ctime / 1000
-				);
-				const timeFiles = FolderFiles.filter(
-					(file) => ts - unixTime > file.stat.ctime / 1000
-				);
+			// gets files that has a later time stamp then set in days
+			const unixTime = Number(this.settings.cutOffTime) * 24 * 60 * 60;
+			const ts = Math.floor(Date.now() / 1000);
+			const timeFiles = FolderFiles.filter(
+				(file) => ts - unixTime > file.stat.ctime / 1000
+			);
 
-				console.log(
-					"this is the resulting files after time",
-					timeFiles
-				);
+			// picks a random note
+			const fileOpen =
+				timeFiles[Math.floor(Math.random() * FolderFiles.length)];
 
-				// this picks a random note
-				const fileOpen =
-					timeFiles[Math.floor(Math.random() * FolderFiles.length)];
+			// opens the file
+			this.app.workspace.openLinkText(fileOpen.basename, "");
 
-				// and this opens the file
-				this.app.workspace.openLinkText(fileOpen.basename, "");
-
-				// adding a banner, following gold of excutation.
-				new Notice("enjoy :D");
-			}
-		);
+			// indicating success
+			new Notice("Random note generated");
+		});
 		// Perform additional things with the ribbon
 		ribbonIconEl.addClass("my-plugin-ribbon-class");
 
-		// This adds a status bar item to the bottom of the app. Does not work on mobile apps.
-		const statusBarItemEl = this.addStatusBarItem();
-		statusBarItemEl.setText("Status Bar Text");
-
-		// This adds a simple command that can be triggered anywhere
-		this.addCommand({
-			id: "open-sample-modal-simple",
-			name: "Open sample modal (simple)",
-			callback: () => {
-				new SampleModal(this.app).open();
-			},
-		});
-		// This adds an editor command that can perform some operation on the current editor instance
-		this.addCommand({
-			id: "sample-editor-command",
-			name: "Sample editor command",
-			editorCallback: (editor: Editor, view: MarkdownView) => {
-				console.log(editor.getSelection());
-				editor.replaceSelection("Sample Editor Command");
-			},
-		});
-		// This adds a complex command that can check whether the current state of the app allows execution of the command
-		this.addCommand({
-			id: "open-sample-modal-complex",
-			name: "Open sample modal (complex)",
-			checkCallback: (checking: boolean) => {
-				// Conditions to check
-				const markdownView =
-					this.app.workspace.getActiveViewOfType(MarkdownView);
-				if (markdownView) {
-					// If checking is true, we're simply "checking" if the command can be run.
-					// If checking is false, then we want to actually perform the operation.
-					if (!checking) {
-						new SampleModal(this.app).open();
-					}
-
-					// This command will only show up in Command Palette when the check function returns true
-					return true;
-				}
-			},
-		});
-
 		// This adds a settings tab so the user can configure various aspects of the plugin
-		this.addSettingTab(new SampleSettingTab(this.app, this));
-
-		// If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
-		// Using this function will automatically remove the event listener when this plugin is disabled.
-		this.registerDomEvent(document, "click", (evt: MouseEvent) => {
-			console.log("click", evt);
-		});
+		this.addSettingTab(new RandomNoteSettingTab(this.app, this));
 
 		// When registering intervals, this function will automatically clear the interval when the plugin is disabled.
 		this.registerInterval(
@@ -152,26 +70,10 @@ export default class MyPlugin extends Plugin {
 	}
 }
 
-class SampleModal extends Modal {
-	constructor(app: App) {
-		super(app);
-	}
+class RandomNoteSettingTab extends PluginSettingTab {
+	plugin: RandomNotePlugin;
 
-	onOpen() {
-		const { contentEl } = this;
-		contentEl.setText("Woah!");
-	}
-
-	onClose() {
-		const { contentEl } = this;
-		contentEl.empty();
-	}
-}
-
-class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
-
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: RandomNotePlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -181,34 +83,35 @@ class SampleSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 
-		containerEl.createEl("h2", { text: "Settings for my awesome plugin." });
-
+		// setting for folder path
 		new Setting(containerEl)
-			.setName("Destination folder location")
-			.setDesc("It's a secret")
+			.setName("Destination folder path")
+			.setDesc(
+				"Set a folder path, all notes selected will be within that folder"
+			)
 			.addText((text) =>
 				text
-					.setPlaceholder("Enter your secret")
+					.setPlaceholder("Project/Errands")
 					.setValue(this.plugin.settings.destinationFolder)
 					.onChange(async (value) => {
-						console.log("Secret: " + value);
 						this.plugin.settings.destinationFolder = value;
 						await this.plugin.saveSettings();
 					})
 			);
 
+		// setting for time stamp
 		new Setting(containerEl)
 			.setName("Cutoff time")
-			.setDesc("It's a secret")
+			.setDesc(
+				"Specify a time x (days), all notes selected will be x days prior to today (if applicable)"
+			)
 			.addText((text) =>
 				text
-					.setPlaceholder("Enter your secret")
+					.setPlaceholder("7")
 					.setValue(this.plugin.settings.cutOffTime)
 					.onChange(async (value) => {
-						console.log("Secret: " + value);
 						if (typeof Number(value) == "number") {
 							this.plugin.settings.cutOffTime = value;
-							console.log("itworked");
 						}
 						await this.plugin.saveSettings();
 					})
