@@ -17,34 +17,37 @@ export default class RandomNotePlugin extends Plugin {
 		await this.loadSettings();
 
 		// creates an icon in the left ribbon.
-		const ribbonIconEl = this.addRibbonIcon("dice", "Sample Plugin", () => {
-			// gets all files from the obsidian vault
-			const files = this.app.vault.getMarkdownFiles();
+		const ribbonIconEl = this.addRibbonIcon(
+			"dice",
+			"Condtional Random Note",
+			() => {
+				// gets all files from the obsidian vault
+				const files = this.app.vault.getMarkdownFiles();
 
-			// gets all files containing path set
-			const FolderFiles = files.filter((word) =>
-				word.path.includes(this.settings.destinationFolder)
-			);
+				// gets all files containing path set
+				const FolderFiles = files.filter((word) =>
+					word.path.includes(this.settings.destinationFolder)
+				);
 
-			// gets files that has a later time stamp then set in days
-			const unixTime = Number(this.settings.cutOffTime) * 24 * 60 * 60;
-			const ts = Math.floor(Date.now() / 1000);
-			const timeFiles = FolderFiles.filter(
-				(file) => ts - unixTime > file.stat.ctime / 1000
-			);
+				// gets files that has a later time stamp then set in days
+				const unixTime =
+					Number(this.settings.cutOffTime) * 24 * 60 * 60;
+				const ts = Math.floor(Date.now() / 1000);
+				const timeFiles = FolderFiles.filter(
+					(file) => ts - unixTime > file.stat.ctime / 1000
+				);
 
-			// picks a random note
-			const fileOpen =
-				timeFiles[Math.floor(Math.random() * FolderFiles.length)];
+				// picks a random note
+				const fileOpen =
+					timeFiles[Math.floor(Math.random() * FolderFiles.length)];
 
-			// opens the file
-			this.app.workspace.openLinkText(fileOpen.basename, "");
+				// opens the file
+				this.app.workspace.openLinkText(fileOpen.basename, "");
 
-			// indicating success
-			new Notice("Random note generated");
-		});
-		// Perform additional things with the ribbon
-		ribbonIconEl.addClass("my-plugin-ribbon-class");
+				// indicating success
+				new Notice("Random note generated");
+			}
+		);
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new RandomNoteSettingTab(this.app, this));
@@ -103,7 +106,7 @@ class RandomNoteSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Cutoff time")
 			.setDesc(
-				"Specify a time x (days), all notes selected will be x days prior to today (if applicable)"
+				"Specify a time x (days), all notes selected will be x days prior to today (currently for MacOS and Windows)"
 			)
 			.addText((text) =>
 				text
@@ -112,8 +115,10 @@ class RandomNoteSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						if (typeof Number(value) == "number") {
 							this.plugin.settings.cutOffTime = value;
+							await this.plugin.saveSettings();
+						} else {
+							new Notice("Invalid input, please try again");
 						}
-						await this.plugin.saveSettings();
 					})
 			);
 	}
